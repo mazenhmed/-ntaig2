@@ -1897,7 +1897,7 @@
         }).then(canvas => {
             try {
                 const imgData = canvas.toDataURL('image/jpeg', 0.9); // ⬅️ العودة إلى JPEG
-                const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 15;
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
                 if (currentPage > 0) {
@@ -1971,7 +1971,7 @@
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
 
-                const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 15;
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
                 console.log('📐 أبعاد الصورة:', pdfWidth, 'x', pdfHeight);
