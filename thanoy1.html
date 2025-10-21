@@ -1089,7 +1089,7 @@ th, td {
             <p class="system-subtitle">المكتبة المتكاملة للطباعة والتصوير</p>
         </header>
 <div class="home-btn-container">
-    <button class="home-btn" onclick="window.location.href='ntaig.html'">
+    <button class="home-btn" onclick="window.location.href='index.html'">
         🏠 العودة إلى الرئيسية
     </button>
 </div>
@@ -1640,7 +1640,7 @@ th, td {
                             <div class="library-logo">
     <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Emblem_of_Yemen_%282%29.svg/330px-Emblem_of_Yemen_%282%29.svg.png" alt="شعار المكتبة" style=" height: 150%;  object-fit: cover;">
 </div>
-                                <p>نتيجة نهاية الفصل الدراسي الأول 1447هـ 2015م - 2026م </p>
+                                <p>نتيجة نهاية الفصل الدراسي الأول 1447هـ 2025م - 2026م </p>
                             </div>
                         </div>
                     </div>
@@ -1949,14 +1949,14 @@ th, td {
         }).then(canvas => {
             try {
                 const imgData = canvas.toDataURL('image/jpeg', 0.9); // ⬅️ العودة إلى JPEG
-                const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 35;
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
                 if (currentPage > 0) {
                     pdf.addPage();
                 }
 
-                pdf.addImage(imgData, 'JPEG', 10, 10, pdfWidth, pdfHeight);
+                pdf.addImage(imgData, 'JPEG', 15, 10, pdfWidth, pdfHeight);
                 currentPage++;
                 processedCount++;
 
@@ -2022,12 +2022,12 @@ th, td {
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
 
-                const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 35;
                 const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
                 console.log('📐 أبعاد الصورة:', pdfWidth, 'x', pdfHeight);
                 
-                pdf.addImage(imgData, 'JPEG', 10, 10, pdfWidth, pdfHeight);
+                pdf.addImage(imgData, 'JPEG', 15, 10, pdfWidth, pdfHeight);
                 pdf.save(filename);
                 
                 console.log('✅ تم حفظ PDF بنجاح');
