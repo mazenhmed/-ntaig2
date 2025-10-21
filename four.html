@@ -1810,14 +1810,13 @@
             }
         }
 
-       function exportAllStudentsToPDF() {
+      function exportAllStudentsToPDF() {
     const reportsContainer = document.getElementById('reports');
     if (!reportsContainer || reportsContainer.children.length === 0) {
         alert('لا توجد تقارير لتصديرها');
         return;
     }
 
-    // ✅ تعديل خاص: ترتيب الطلاب أبجدياً حسب الاسم قبل التصدير
     const sortedReports = Array.from(reportsContainer.children).sort((a, b) => {
         const nameA = (a.querySelector('.student-info-value')?.textContent || '').trim();
         const nameB = (b.querySelector('.student-info-value')?.textContent || '').trim();
@@ -1837,9 +1836,11 @@
     const { jsPDF } = window.jspdf;
     const pdf = new jsPDF('p', 'mm', 'a4');
     let currentPage = 0;
+    let processedCount = 0;
 
     function processNextReport(index) {
         if (index >= totalStudents) {
+            console.log('✅ تم إنشاء جميع الصفحات');
             pdf.save('تقارير_جميع_الطلاب.pdf');
             document.body.removeChild(loadingIndicator);
             return;
@@ -1848,19 +1849,18 @@
         document.getElementById('progress').textContent = `${index + 1}/${totalStudents}`;
         const reportElement = sortedReports[index];
 
-        // ⭐ التعديل هنا - تحسين إعدادات html2canvas
+        console.log(`🔄 معالجة الطالب ${index + 1} من ${totalStudents}`);
+
         html2canvas(reportElement, {
-            scale: 2.5,                    // ⬆️ كان 1.2 - الآن 2.5
-            dpi: 300,                      // ⬆️ إضافة دقة عالية
+            scale: 1.8, // ⬅️ تقليل المقياس لتجنب مشاكل الذاكرة
             useCORS: true,
-            allowTaint: true,
+            allowTaint: false, // ⬅️ تغيير إلى false
             logging: false,
             backgroundColor: '#ffffff',
-            removeContainer: true,
+            removeContainer: false, // ⬅️ تغيير إلى false
             width: reportElement.scrollWidth,
             height: reportElement.scrollHeight,
             onclone: function(clonedDoc) {
-                // ⬆️ تحسين النص في النسخة المستنسخة
                 const allElements = clonedDoc.querySelectorAll('*');
                 allElements.forEach(el => {
                     el.style.fontSmoothing = 'antialiased';
@@ -1869,32 +1869,45 @@
             }
         }).then(canvas => {
             try {
-                // ⭐ التعديل هنا - تغيير الجودة والصيغة
-                const imgData = canvas.toDataURL('image/png', 1.0); // ⬆️ كان jpeg 0.7 - الآن png 1.0
-                const imgWidth = 195;
-                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const imgData = canvas.toDataURL('image/jpeg', 0.9); // ⬅️ العودة إلى JPEG
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-                if (currentPage > 0) pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight); // ⬆️ تغيير إلى PNG
+                if (currentPage > 0) {
+                    pdf.addPage();
+                }
 
+                pdf.addImage(imgData, 'JPEG', 10, 10, pdfWidth, pdfHeight);
                 currentPage++;
-                setTimeout(() => processNextReport(index + 1), 800); // ⬆️ زيادة التأخير إلى 800 مللي
+                processedCount++;
+
+                console.log(`✅ تمت معالجة الصفحة ${currentPage}`);
+
+                // معالجة التالي بعد تأخير قصير
+                setTimeout(() => {
+                    processNextReport(index + 1);
+                }, 300);
+
             } catch (error) {
-                console.error('⚠️ خطأ في معالجة الصورة:', error);
-                document.body.removeChild(loadingIndicator);
-                alert('حدث خطأ أثناء إنشاء ملف PDF');
+                console.error(`❌ خطأ في معالجة الصفحة ${index + 1}:`, error);
+                // الاستمرار في المعالجة رغم الخطأ
+                setTimeout(() => {
+                    processNextReport(index + 1);
+                }, 300);
             }
         }).catch(error => {
-            console.error('⚠️ خطأ في html2canvas:', error);
-            document.body.removeChild(loadingIndicator);
-            alert('حدث خطأ أثناء إنشاء ملف PDF');
+            console.error(`❌ خطأ في html2canvas للصفحة ${index + 1}:`, error);
+            // الاستمرار في المعالجة رغم الخطأ
+            setTimeout(() => {
+                processNextReport(index + 1);
+            }, 300);
         });
     }
 
+    // بدء المعالجة
     processNextReport(0);
 }
-
-       function exportSingleElementToPDF(element, filename) {
+function exportSingleElementToPDF(element, filename) {
     const loadingIndicator = createLoadingIndicator('جاري تحضير ملف PDF...');
     document.body.appendChild(loadingIndicator);
 
@@ -1904,20 +1917,19 @@
         return;
     }
 
-    // ⭐ التعديل هنا - إضافة تأخير لتحميل العناصر الديناميكية
+    // استخدام setTimeout مع Promise للتحكم better
     setTimeout(() => {
         html2canvas(element, {
-            scale: 2.5,                    // ⬆️ كان 1.2 - الآن 2.5 (أعلى جودة)
-            dpi: 300,                      // ⬆️ إضافة دقة عالية
+            scale: 2, // ⬅️ خفضنا إلى 2 لتجنب مشاكل الذاكرة
             useCORS: true,
-            allowTaint: true,
-            logging: false,
+            allowTaint: false, // ⬅️ تغيير إلى false
+            logging: true, // ⬅️ تفعيل التسجيل لرؤية الأخطاء
             backgroundColor: '#ffffff',
-            removeContainer: true,
+            removeContainer: false, // ⬅️ تغيير إلى false
             width: element.scrollWidth,
-            height: element.scrollHeight + 50,
+            height: element.scrollHeight,
             onclone: function(clonedDoc) {
-                // ⬆️ تحسين النص في النسخة المستنسخة
+                // تحسين النص في النسخة المستنسخة
                 const allElements = clonedDoc.querySelectorAll('*');
                 allElements.forEach(el => {
                     el.style.fontSmoothing = 'antialiased';
@@ -1925,24 +1937,34 @@
                 });
             }
         }).then(canvas => {
-            // ⭐ التعديل هنا - تغيير الجودة والصيغة
-            const imgData = canvas.toDataURL('image/png', 1.0); // ⬆️ كان jpeg 0.7 - الآن png 1.0
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF('p', 'mm', 'a4');
+            try {
+                console.log('✅ تم إنشاء canvas بنجاح');
+                const imgData = canvas.toDataURL('image/jpeg', 0.95); // ⬅️ العودة إلى JPEG بجودة عالية
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
 
-            const imgWidth = 195;
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const pdfWidth = pdf.internal.pageSize.getWidth() - 20;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
-            pdf.addImage(imgData, 'PNG', 10, 10, imgWidth, imgHeight); // ⬆️ تغيير إلى PNG
-            pdf.save(filename);
-
-            document.body.removeChild(loadingIndicator);
+                console.log('📐 أبعاد الصورة:', pdfWidth, 'x', pdfHeight);
+                
+                pdf.addImage(imgData, 'JPEG', 10, 10, pdfWidth, pdfHeight);
+                pdf.save(filename);
+                
+                console.log('✅ تم حفظ PDF بنجاح');
+                
+            } catch (error) {
+                console.error('❌ خطأ في حفظ PDF:', error);
+                alert('حدث خطأ أثناء حفظ ملف PDF: ' + error.message);
+            } finally {
+                document.body.removeChild(loadingIndicator);
+            }
         }).catch(error => {
-            console.error('⚠️ خطأ في إنشاء PDF:', error);
-            alert('حدث خطأ أثناء إنشاء ملف PDF');
+            console.error('❌ خطأ في html2canvas:', error);
+            alert('حدث خطأ في إنشاء الصورة: ' + error.message);
             document.body.removeChild(loadingIndicator);
         });
-    }, 1000); // ⬆️ إضافة تأخير 1 ثانية لضمان تحميل كل العناصر
+    }, 500); // ⬅️ تقليل التأخير إلى 500 مللي
 }
         // 🔹 دالة مساعدة لإنشاء مؤشر تحميل
         function createLoadingIndicator(message) {
